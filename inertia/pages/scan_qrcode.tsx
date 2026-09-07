@@ -74,7 +74,8 @@ export default function ScanQrCode({ masterData, records }: Props) {
 
   const scannedPcbCode = rawPcbScan.split(',')[0]?.trim() ?? ''
   const pcbMatch = data.partPcb !== '' && scannedPcbCode !== '' && scannedPcbCode === data.partPcb
-  const icMatch = data.partIc !== '' && correctPartIc !== null && data.partIc.trim() === correctPartIc
+  const icMatch =
+    data.partIc !== '' && correctPartIc !== null && data.partIc.trim() === correctPartIc
   const productionNameValid = data.productionName.trim().length === 14
   const dcValid = data.dc.trim().length === 4
 
@@ -114,61 +115,64 @@ export default function ScanQrCode({ masterData, records }: Props) {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="flex flex-wrap items-start gap-8">
-                <div className="w-64">
-  <Label className="mb-2 block">Part PCB</Label>
-  <Popover open={pcbPopoverOpen} onOpenChange={setPcbPopoverOpen}>
-    <PopoverTrigger
-      render={
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={pcbPopoverOpen}
-          className="w-full justify-between font-normal"
-        />
-      }
-    >
-      {data.partPcb || 'Select Part PCB'}
-      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-    </PopoverTrigger>
-    <PopoverContent className="w-64 p-0">
-      <Command>
-        <CommandInput placeholder="Search Part PCB..." />
-        <CommandList>
-          <CommandEmpty>No Part PCB found.</CommandEmpty>
-          <CommandGroup>
-            {masterData.map((m) => (
-              <CommandItem
-                key={m.id}
-                value={m.partPcb}
-                onSelect={(value) => {
-                  setData('partPcb', value)
-                  setPcbPopoverOpen(false)
-                }}
-              >
-                <Check
-                  className={cn(
-                    'mr-2 h-4 w-4',
-                    data.partPcb === m.partPcb ? 'opacity-100' : 'opacity-0'
-                  )}
-                />
-                {m.partPcb}
-              </CommandItem>
-            ))}
-          </CommandGroup>
-        </CommandList>
-      </Command>
-    </PopoverContent>
-  </Popover>
-</div>
+            <div className="flex flex-wrap justify-around">
+              <div className="w-64">
+                <Label className="mb-2 block">Part PCB</Label>
+                <Popover open={pcbPopoverOpen} onOpenChange={setPcbPopoverOpen}>
+                  <PopoverTrigger
+                    render={
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={pcbPopoverOpen}
+                        className="w-full justify-between font-normal"
+                      />
+                    }
+                  >
+                    {data.partPcb || 'Select Part PCB'}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </PopoverTrigger>
+                  <PopoverContent className="w-64 p-0">
+                    <Command>
+                      <CommandInput placeholder="Search Part PCB..." />
+                      <CommandList>
+                        <CommandEmpty>No Part PCB found.</CommandEmpty>
+                        <CommandGroup>
+                          {masterData.map((m) => (
+                            <CommandItem
+                              key={m.id}
+                              value={m.partPcb}
+                              onSelect={(value) => {
+                                setData('partPcb', value)
+                                setPcbPopoverOpen(false)
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  'mr-2 h-4 w-4',
+                                  data.partPcb === m.partPcb ? 'opacity-100' : 'opacity-0'
+                                )}
+                              />
+                              {m.partPcb}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              </div>
 
               <div className="w-32">
                 <Label className="mb-2 block">Shift</Label>
                 <Select value={data.shift} onValueChange={(value) => setData('shift', value ?? '')}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="—" />
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select Shift" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent
+                    alignItemWithTrigger={false}
+                    className="w-(--anchor-width) min-w-0"
+                  >
                     <SelectItem value="A">A</SelectItem>
                     <SelectItem value="B">B</SelectItem>
                   </SelectContent>
@@ -176,7 +180,7 @@ export default function ScanQrCode({ masterData, records }: Props) {
               </div>
             </div>
 
-            <div className="flex flex-wrap items-start gap-6">
+            <div className="flex flex-wrap justify-between mt-6">
               <div className="w-48">
                 <Label className="mb-2 block">Scan PCB</Label>
                 <Input
