@@ -5,6 +5,18 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { DataTable } from '@/components/data-table'
+import { Trash } from 'lucide-react'
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from '@/components/ui/alert-dialog'
 
 interface MasterDataItem {
   id: number
@@ -28,9 +40,7 @@ export default function MasterData({ items }: Props) {
   }
 
   function handleDelete(id: number) {
-    if (confirm('Delete this item?')) {
-      router.delete(`/master-data/${id}`)
-    }
+    router.delete(`/master-data/${id}`)
   }
 
   const columns: ColumnDef<MasterDataItem>[] = [
@@ -38,12 +48,45 @@ export default function MasterData({ items }: Props) {
     { accessorKey: 'partIc', header: 'Part IC' },
     {
       id: 'actions',
-      header: '',
-      cell: ({ row }) => (
-        <Button variant="ghost" size="sm" onClick={() => handleDelete(row.original.id)}>
-          Delete
-        </Button>
-      ),
+      header: 'Actions',
+      cell: ({ row }: any) => {
+        const item = row.original
+        return (
+          <AlertDialog>
+            <AlertDialogTrigger
+              render={
+                <Button
+                  disabled={item.is_used}
+                  variant="outline"
+                  className="cursor-pointer"
+                  size="sm"
+                />
+              }
+            >
+              <Trash className="w-4 h-4" />
+            </AlertDialogTrigger>
+
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete this row.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-red-500 hover:bg-red-600 font-semibold text-white"
+                  onClick={() => handleDelete(item.id)}
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )
+      },
     },
   ]
 
@@ -51,11 +94,13 @@ export default function MasterData({ items }: Props) {
     <Layout>
       <div className="flex justify-center p-6">
         <div className="w-full max-w-3xl">
-          <h1 className="mb-4 text-2xl font-bold text-center">Master Data</h1>
+          <h1 className="mb-8 text-2xl font-bold text-center">Master Data</h1>
 
           <form onSubmit={handleSubmit} className="mb-6 flex items-end gap-4">
             <div className="flex-1">
-              <Label htmlFor="partPcb">Part PCB</Label>
+              <Label htmlFor="partPcb" className="mb-2 block">
+                Part PCB
+              </Label>
               <Input
                 id="partPcb"
                 value={data.partPcb}
@@ -64,7 +109,9 @@ export default function MasterData({ items }: Props) {
               {errors.partPcb && <p className="text-sm text-red-500">{errors.partPcb}</p>}
             </div>
             <div className="flex-1">
-              <Label htmlFor="partIc">Part IC</Label>
+              <Label htmlFor="partIc" className="mb-2 block">
+                Part IC
+              </Label>
               <Input
                 id="partIc"
                 value={data.partIc}
@@ -72,12 +119,20 @@ export default function MasterData({ items }: Props) {
               />
               {errors.partIc && <p className="text-sm text-red-500">{errors.partIc}</p>}
             </div>
-            <Button type="submit" disabled={processing}>
+            <Button
+              type="submit"
+              disabled={processing}
+              className="bg-[#1e88e5] hover:bg-[#1976d2] cursor-pointer"
+            >
               Add
             </Button>
           </form>
 
-          <DataTable columns={columns} data={items} />
+          <DataTable
+            columns={columns}
+            data={items}
+            searchPlaceholder="Search Part PCB or Part IC"
+          />
         </div>
       </div>
     </Layout>

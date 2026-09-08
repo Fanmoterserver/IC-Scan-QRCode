@@ -1,7 +1,7 @@
-@import "tailwindcss";
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
-@import "@fontsource-variable/geist";
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+@import '@fontsource-variable/geist';
 
 @custom-variant dark (&:is(.dark *));
 * {
@@ -9,7 +9,7 @@
   padding: 0;
 }
 
-.app-header nav {
+/* .app-header nav {
   display: flex;
   gap: 1.5rem;
   padding: 1rem 2rem;
@@ -32,7 +32,7 @@
   padding: 1rem;
   background: #f3f4f6;
   color: #6b7280;
-}
+} */
 
 @theme inline {
   --font-heading: var(--font-sans);

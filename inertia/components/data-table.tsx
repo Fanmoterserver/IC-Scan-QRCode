@@ -1,3 +1,4 @@
+// inertia/components/data-table.tsx
 import { useState } from 'react'
 import {
   ColumnDef,
@@ -19,9 +20,18 @@ import {
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
+  showSearch?: boolean
+  searchPlaceholder?: string
+  onRowClick?: (row: TData) => void
 }
 
-export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData, TValue>) {
+export function DataTable<TData, TValue>({
+  columns,
+  data,
+  showSearch = true,
+  searchPlaceholder = 'Search...',
+  onRowClick,
+}: DataTableProps<TData, TValue>) {
   const [globalFilter, setGlobalFilter] = useState('')
 
   const table = useReactTable({
@@ -35,14 +45,16 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
 
   return (
     <div>
-      <div className="mb-4">
-        <Input
-          placeholder="Search Part PCB or Part IC..."
-          value={globalFilter}
-          onChange={(e) => setGlobalFilter(e.target.value)}
-          className="max-w-sm"
-        />
-      </div>
+      {showSearch && (
+        <div className="mb-4">
+          <Input
+            placeholder={searchPlaceholder}
+            value={globalFilter}
+            onChange={(e) => setGlobalFilter(e.target.value)}
+            className="max-w-sm"
+          />
+        </div>
+      )}
 
       <div className="rounded-md border">
         <Table>
@@ -62,7 +74,11 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
           <TableBody>
             {table.getRowModel().rows.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
+                <TableRow
+                  key={row.id}
+                  onClick={() => onRowClick?.(row.original)}
+                  className={onRowClick ? 'cursor-pointer hover:bg-gray-50' : undefined}
+                >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
