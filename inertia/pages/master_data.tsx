@@ -92,8 +92,8 @@ export default function MasterData({ items }: Props) {
 
   return (
     <Layout>
-      <div className="flex justify-center p-6">
-        <div className="w-full max-w-3xl">
+      <div className="flex h-full justify-center p-6">
+        <div className="flex h-full flex-col w-full max-w-3xl">
           <h1 className="mb-8 text-2xl font-bold text-center">Master Data</h1>
 
           <form onSubmit={handleSubmit} className="mb-6 flex items-end gap-4">

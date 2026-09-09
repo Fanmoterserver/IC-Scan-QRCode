@@ -9,30 +9,11 @@
   padding: 0;
 }
 
-/* .app-header nav {
-  display: flex;
-  gap: 1.5rem;
-  padding: 1rem 2rem;
-  background: #1f2937;
+html, body, #app {
+  height: 100%;
+  margin: 0;
+  padding: 0;
 }
-
-.app-header nav a {
-  color: white;
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.app-content {
-  min-height: 80vh;
-  padding: 2rem;
-}
-
-.app-footer {
-  text-align: center;
-  padding: 1rem;
-  background: #f3f4f6;
-  color: #6b7280;
-} */
 
 @theme inline {
   --font-heading: var(--font-sans);

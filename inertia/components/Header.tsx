@@ -17,7 +17,7 @@ export default function Header() {
   const { url } = usePage()
 
   return (
-    <header className="border-b bg-white">
+    <header className="sticky top-0 z-10 border-b bg-white">
       <div className="flex items-center gap-6 px-6 py-3">
         <span className="font-semibold text-lg">IC Scan QR Code</span>
 

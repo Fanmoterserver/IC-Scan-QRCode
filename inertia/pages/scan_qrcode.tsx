@@ -187,8 +187,8 @@ export default function ScanQrCode({ masterData, records }: Props) {
 
   return (
     <Layout>
-      <div className="flex justify-center p-6">
-        <div className="w-full max-w-4xl">
+      <div className="flex h-full justify-center p-6">
+        <div className="flex h-full w-full max-w-4xl flex-col">
           <h1 className="mb-8 text-center text-2xl font-bold">Scan QR Code</h1>
 
           {props.error && (
@@ -197,7 +197,7 @@ export default function ScanQrCode({ masterData, records }: Props) {
             </div>
           )}
 
-          <form className="space-y-6">
+          <div className="space-y-6">
             <div className="flex flex-wrap justify-around">
               <div className="w-64">
                 <Label className="mb-2 block">Part PCB</Label>
@@ -319,9 +319,9 @@ export default function ScanQrCode({ masterData, records }: Props) {
                 )}
               </div>
             </div>
-          </form>
+          </div>
 
-          <div className="mt-10">
+          <div className="mt-10 min-h-0 flex-1">
             <DataTable columns={columns} data={records} showSearch={false} />
           </div>
         </div>
