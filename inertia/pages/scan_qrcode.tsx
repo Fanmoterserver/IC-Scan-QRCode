@@ -7,6 +7,18 @@ import { DataTable } from '@/components/data-table'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Trash } from 'lucide-react'
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from '@/components/ui/alert-dialog'
 import {
   Select,
   SelectContent,
@@ -119,9 +131,7 @@ export default function ScanQrCode({ masterData, records }: Props) {
   }, [canSubmit, processing])
 
   function handleDeleteRecord(id: number) {
-    if (confirm('Delete this scan record?')) {
-      router.delete(`/scan-qrcode/${id}`)
-    }
+    router.delete(`/scan-qrcode/${id}`)
   }
 
   const columns: ColumnDef<ScanRecordItem>[] = [
@@ -133,12 +143,45 @@ export default function ScanQrCode({ masterData, records }: Props) {
     { accessorKey: 'createdAt', header: 'Created At' },
     {
       id: 'actions',
-      header: '',
-      cell: ({ row }) => (
-        <Button variant="ghost" size="sm" onClick={() => handleDeleteRecord(row.original.id)}>
-          Delete
-        </Button>
-      ),
+      header: 'Actions',
+      cell: ({ row }: any) => {
+        const item = row.original
+        return (
+          <AlertDialog>
+            <AlertDialogTrigger
+              render={
+                <Button
+                  disabled={item.is_used}
+                  variant="outline"
+                  className="cursor-pointer"
+                  size="sm"
+                />
+              }
+            >
+              <Trash className="w-4 h-4" />
+            </AlertDialogTrigger>
+
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete this row.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-red-500 hover:bg-red-600 font-semibold text-white"
+                  onClick={() => handleDeleteRecord(item.id)}
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )
+      },
     },
   ]
 
