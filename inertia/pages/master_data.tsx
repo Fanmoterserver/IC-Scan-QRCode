@@ -1,5 +1,6 @@
 import { useForm, router } from '@inertiajs/react'
 import { ColumnDef } from '@tanstack/react-table'
+import toast from 'react-hot-toast'
 import Layout from '../components/Layout'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -36,13 +37,24 @@ export default function MasterData({ items }: Props) {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    post('/master-data', { onSuccess: () => reset() })
+    post('/master-data', {
+      onSuccess: () => {
+        toast.success('Master data added')
+        reset()
+      },
+      onError: () => {
+        toast.error('Failed to add master data')
+      },
+    })
   }
 
   function handleDelete(id: number) {
-    router.delete(`/master-data/${id}`)
+    router.delete(`/master-data/${id}`, {
+      onSuccess: () => toast.success('Deleted successfully'),
+      onError: () => toast.error('Failed to delete'),
+    })
   }
-
+  
   const columns: ColumnDef<MasterDataItem>[] = [
     { accessorKey: 'partPcb', header: 'Part PCB' },
     { accessorKey: 'partIc', header: 'Part IC' },

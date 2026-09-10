@@ -1,6 +1,7 @@
 // inertia/pages/scan_qrcode.tsx
 import { useForm, usePage, router } from '@inertiajs/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import toast from 'react-hot-toast'
 import Layout from '../components/Layout'
 import { ColumnDef } from '@tanstack/react-table'
 import { DataTable } from '@/components/data-table'
@@ -110,12 +111,12 @@ export default function ScanQrCode({ masterData, records }: Props) {
   }
 
   const hasSubmittedRef = useRef(false)
-
   useEffect(() => {
     if (canSubmit && !processing && !hasSubmittedRef.current) {
       hasSubmittedRef.current = true
       post('/scan-qrcode', {
         onSuccess: () => {
+          toast.success('Scan saved successfully')
           reset('partIc', 'productionName', 'dc')
           setRawPcbScan('')
           if (scanInputRef.current) {
@@ -123,7 +124,8 @@ export default function ScanQrCode({ masterData, records }: Props) {
           }
           hasSubmittedRef.current = false
         },
-        onError: () => {
+        onError: (errors) => {
+          toast.error(Object.values(errors)[0] as string || 'Failed to save scan')
           hasSubmittedRef.current = false
         },
       })
@@ -131,7 +133,10 @@ export default function ScanQrCode({ masterData, records }: Props) {
   }, [canSubmit, processing])
 
   function handleDeleteRecord(id: number) {
-    router.delete(`/scan-qrcode/${id}`)
+    router.delete(`/scan-qrcode/${id}`, {
+      onSuccess: () => toast.success('Deleted successfully'),
+      onError: () => toast.error('Failed to delete'),
+    })
   }
 
   const columns: ColumnDef<ScanRecordItem>[] = [
