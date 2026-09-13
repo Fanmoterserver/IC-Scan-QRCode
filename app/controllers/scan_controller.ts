@@ -9,6 +9,7 @@ import vine from '@vinejs/vine'
 const scanValidator = vine.compile(
   vine.object({
     partPcb: vine.string().trim().minLength(1),
+    scanPcb: vine.string().trim().minLength(1),
     partIc: vine.string().trim().minLength(1),
     productionName: vine.string().trim().fixedLength(14),
     dc: vine.string().trim().fixedLength(4),
@@ -25,7 +26,7 @@ export default class ScanController {
       masterData,
       records: records.map((r) => ({
         id: r.id,
-        partPcb: r.partPcb,
+        scanPcb: r.scanPcb,
         partIc: r.partIc,
         productionName: r.productionName,
         dc: r.dc,
@@ -36,66 +37,77 @@ export default class ScanController {
   }
 
   async store({ request, response, session }: HttpContext) {
-  const data = await request.validateUsing(scanValidator)
+    const data = await request.validateUsing(scanValidator)
 
-  const match = await MasterData.query()
-    .where('partPcb', data.partPcb)
-    .where('partIc', data.partIc)
-    .first()
+    // Validate against Master Data using the SELECTED Part PCB, not the raw scan
+    const match = await MasterData.query()
+      .where('partPcb', data.partPcb)
+      .where('partIc', data.partIc)
+      .first()
 
-  if (!match) {
-    session.flash('error', 'Part IC does not match the selected Part PCB in master data.')
+    if (!match) {
+      session.flash('error', 'Part IC does not match the selected Part PCB in master data.')
+      return response.redirect().back()
+    }
+
+    // Save the scan record with the FULL raw scanned string in scan_pcb
+    await ScanRecord.create({
+      scanPcb: data.scanPcb,
+      partIc: data.partIc,
+      productionName: data.productionName,
+      dc: data.dc,
+      shift: data.shift,
+    })
+
+    // Maintain the summary table, grouped by the selected Part PCB
+    const scanDate = DateTime.now().setZone('Asia/Phnom_Penh').toFormat('yyyy-MM-dd')
+
+    const existing = await DataSummary.query()
+      .where('partPcb', data.partPcb)
+      .where('shift', data.shift)
+      .where('scanDate', scanDate)
+      .first()
+
+    if (existing) {
+      await DataSummary.query().where('id', existing.id).increment('totalScan', 1)
+    } else {
+      await DataSummary.create({
+        partPcb: data.partPcb,
+        shift: data.shift,
+        scanDate,
+        totalScan: 1,
+      })
+    }
+
     return response.redirect().back()
   }
 
-  await ScanRecord.create(data)
+  async destroy({ params, response, session }: HttpContext) {
+    const record = await ScanRecord.findOrFail(params.id)
 
-  const scanDate = DateTime.now().setZone('Asia/Phnom_Penh').toFormat('yyyy-MM-dd')
+    // Extract the short PCB code from the stored raw scan string,
+    // since DataSummary is grouped by the short code (partPcb), not the full scan
+    const shortPcbCode = record.scanPcb.split(',')[0]?.trim() ?? record.scanPcb
 
-  const existing = await DataSummary.query()
-    .where('partPcb', data.partPcb)
-    .where('shift', data.shift)
-    .where('scanDate', scanDate)
-    .first()
+    const scanDate = record.createdAt.setZone('Asia/Phnom_Penh').toFormat('yyyy-MM-dd')
 
-  if (existing) {
-    await DataSummary.query()
-      .where('id', existing.id)
-      .increment('totalScan', 1)
-  } else {
-    await DataSummary.create({
-      partPcb: data.partPcb,
-      shift: data.shift,
-      scanDate,
-      totalScan: 1,
-    })
-  }
+    const summary = await DataSummary.query()
+      .where('partPcb', shortPcbCode)
+      .where('shift', record.shift)
+      .where('scanDate', scanDate)
+      .first()
 
-  return response.redirect().back()
-}
-  async destroy({ params, response }: HttpContext) {
-  const record = await ScanRecord.findOrFail(params.id)
+    await record.delete()
+    session.flash('success', 'Deleted Successfully')
 
-  const scanDate = record.createdAt.setZone('Asia/Phnom_Penh').toFormat('yyyy-MM-dd')
-
-  const summary = await DataSummary.query()
-    .where('partPcb', record.partPcb)
-    .where('shift', record.shift)
-    .where('scanDate', scanDate)
-    .first()
-
-  await record.delete()
-
-  if (summary) {
-    if (summary.totalScan <= 1) {
-      await summary.delete()
-    } else {
-      await DataSummary.query()
-        .where('id', summary.id)
-        .decrement('totalScan', 1)
+    if (summary) {
+      if (summary.totalScan <= 1) {
+        await summary.delete()
+      } else {
+        await DataSummary.query().where('id', summary.id).decrement('totalScan', 1)
+      }
     }
-  }
 
-  return response.redirect().back()
-}
+    return response.redirect().back()
+  }
 }

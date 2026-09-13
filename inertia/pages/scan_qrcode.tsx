@@ -48,6 +48,7 @@ interface MasterDataItem {
 
 interface ScanRecordItem {
   id: number
+  scanPcb: string
   partPcb: string
   partIc: string
   productionName: string
@@ -62,32 +63,42 @@ interface Props {
 }
 
 export default function ScanQrCode({ masterData, records }: Props) {
-  const { props } = usePage<{ error?: string }>()
+  const { props } = usePage<{ error?: string; success?: string }>()
   const { data, setData, post, processing, reset } = useForm({
     partPcb: '',
+    scanPcb: '',
     partIc: '',
     productionName: '',
     dc: '',
     shift: '',
   })
 
-  const [rawPcbScan, setRawPcbScan] = useState('')
+  const [selectedPartPcb, setSelectedPartPcb] = useState('')
   const [pcbPopoverOpen, setPcbPopoverOpen] = useState(false)
+  const [warningOpen, setWarningOpen] = useState(false)
+  const [warningMessage, setWarningMessage] = useState('')
+
+  function showWarning(message: string) {
+    setWarningMessage(message)
+    setWarningOpen(true)
+  }
 
   const correctPartIc = useMemo(
-    () => masterData.find((m) => m.partPcb === data.partPcb)?.partIc ?? null,
-    [masterData, data.partPcb]
+    () => masterData.find((m) => m.partPcb === selectedPartPcb)?.partIc ?? null,
+    [masterData, selectedPartPcb]
   )
 
-  const scannedPcbCode = rawPcbScan.split(',')[0]?.trim() ?? ''
-  const pcbMatch = data.partPcb !== '' && scannedPcbCode !== '' && scannedPcbCode === data.partPcb
+  const scannedPcbCode = data.scanPcb.split(',')[0]?.trim() ?? ''
+  const pcbMatch =
+    selectedPartPcb !== '' && scannedPcbCode !== '' && scannedPcbCode === selectedPartPcb
+  const scannedWithoutSelection = data.scanPcb !== '' && selectedPartPcb === ''
   const icMatch =
     data.partIc !== '' && correctPartIc !== null && data.partIc.trim() === correctPartIc
   const productionNameValid = data.productionName.trim().length === 14
   const dcValid = data.dc.trim().length === 4
 
   const canSubmit =
-    data.partPcb !== '' &&
+    selectedPartPcb !== '' &&
     data.shift !== '' &&
     pcbMatch &&
     icMatch &&
@@ -102,10 +113,34 @@ export default function ScanQrCode({ masterData, records }: Props) {
       const fullValue = scanInputRef.current?.value ?? ''
       const firstSegment = fullValue.split(',')[0]?.trim() ?? ''
 
-      setRawPcbScan(fullValue)
+      // Store the FULL raw scanned string — this is what gets saved to the DB
+      setData('scanPcb', fullValue)
 
+      // But visually show just the short PCB code for readability
       if (scanInputRef.current) {
         scanInputRef.current.value = firstSegment
+      }
+
+      if (selectedPartPcb === '') {
+        // Inline error will show automatically via `scannedWithoutSelection`
+        return
+      }
+
+      if (firstSegment && firstSegment !== selectedPartPcb) {
+        showWarning(
+          `Scanned PCB "${firstSegment}" does not match the selected Part PCB "${selectedPartPcb}".`
+        )
+      }
+    }
+  }
+
+  function handlePartIcKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      const value = data.partIc.trim()
+
+      if (value && correctPartIc !== null && value !== correctPartIc) {
+        showWarning(`Incorrect Part IC.\nScanned: "${value}"\nExpected: "${correctPartIc}"`)
       }
     }
   }
@@ -117,15 +152,14 @@ export default function ScanQrCode({ masterData, records }: Props) {
       post('/scan-qrcode', {
         onSuccess: () => {
           toast.success('Scan saved successfully')
-          reset('partIc', 'productionName', 'dc')
-          setRawPcbScan('')
+          reset('scanPcb', 'partIc', 'productionName', 'dc')
           if (scanInputRef.current) {
             scanInputRef.current.value = ''
           }
           hasSubmittedRef.current = false
         },
         onError: (errors) => {
-          toast.error(Object.values(errors)[0] as string || 'Failed to save scan')
+          toast.error((Object.values(errors)[0] as string) || 'Failed to save scan')
           hasSubmittedRef.current = false
         },
       })
@@ -133,14 +167,17 @@ export default function ScanQrCode({ masterData, records }: Props) {
   }, [canSubmit, processing])
 
   function handleDeleteRecord(id: number) {
-    router.delete(`/scan-qrcode/${id}`, {
-      onSuccess: () => toast.success('Deleted successfully'),
-      onError: () => toast.error('Failed to delete'),
-    })
+    router.delete(`/scan-qrcode/${id}`)
   }
 
   const columns: ColumnDef<ScanRecordItem>[] = [
-    { accessorKey: 'partPcb', header: 'Part PCB' },
+    {
+      accessorKey: 'scanPcb',
+      header: 'Scan PCB',
+      cell: ({ row }) => (
+        <div className="max-w-50 overflow-x-auto whitespace-nowrap">{row.original.scanPcb}</div>
+      ),
+    },
     { accessorKey: 'partIc', header: 'Part IC' },
     { accessorKey: 'productionName', header: 'Production Name' },
     { accessorKey: 'dc', header: 'D/C' },
@@ -195,13 +232,6 @@ export default function ScanQrCode({ masterData, records }: Props) {
       <div className="flex h-full justify-center p-6">
         <div className="flex h-full w-full max-w-4xl flex-col">
           <h1 className="mb-8 text-center text-2xl font-bold">Scan QR Code</h1>
-
-          {props.error && (
-            <div className="mb-4 rounded-md border border-red-300 bg-red-50 px-4 py-2 text-sm text-red-600">
-              {props.error}
-            </div>
-          )}
-
           <div className="space-y-6">
             <div className="flex flex-wrap justify-around">
               <div className="w-64">
@@ -217,7 +247,7 @@ export default function ScanQrCode({ masterData, records }: Props) {
                       />
                     }
                   >
-                    {data.partPcb || 'Select Part PCB'}
+                    {selectedPartPcb || 'Select Part PCB'}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </PopoverTrigger>
                   <PopoverContent className="w-64 p-0">
@@ -231,6 +261,7 @@ export default function ScanQrCode({ masterData, records }: Props) {
                               key={m.id}
                               value={m.partPcb}
                               onSelect={(value) => {
+                                setSelectedPartPcb(value)
                                 setData('partPcb', value)
                                 setPcbPopoverOpen(false)
                               }}
@@ -238,7 +269,7 @@ export default function ScanQrCode({ masterData, records }: Props) {
                               <Check
                                 className={cn(
                                   'mr-2 h-4 w-4',
-                                  data.partPcb === m.partPcb ? 'opacity-100' : 'opacity-0'
+                                  selectedPartPcb === m.partPcb ? 'opacity-100' : 'opacity-0'
                                 )}
                               />
                               {m.partPcb}
@@ -279,7 +310,12 @@ export default function ScanQrCode({ masterData, records }: Props) {
                   onKeyDown={handleScanKeyDown}
                   placeholder="Scan here..."
                 />
-                {scannedPcbCode !== '' && !pcbMatch && (
+                {scannedWithoutSelection && (
+                  <p className="mt-1 text-xs text-red-500">
+                    Please select a Part PCB before scanning
+                  </p>
+                )}
+                {!scannedWithoutSelection && scannedPcbCode !== '' && !pcbMatch && (
                   <p className="mt-1 text-xs text-red-500">Does not match selected Part PCB</p>
                 )}
               </div>
@@ -289,6 +325,7 @@ export default function ScanQrCode({ masterData, records }: Props) {
                 <Input
                   value={data.partIc}
                   onChange={(e) => setData('partIc', e.target.value)}
+                  onKeyDown={handlePartIcKeyDown}
                   placeholder="Scan or enter"
                 />
                 {data.partIc !== '' && !icMatch && (
@@ -330,6 +367,21 @@ export default function ScanQrCode({ masterData, records }: Props) {
             <DataTable columns={columns} data={records} showSearch={false} />
           </div>
         </div>
+      </div>
+      <div>
+        <AlertDialog open={warningOpen} onOpenChange={setWarningOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-red-600">Scan Mismatch</AlertDialogTitle>
+              <AlertDialogDescription className="whitespace-pre-line">
+                {warningMessage}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogAction onClick={() => setWarningOpen(false)}>OK</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </Layout>
   )

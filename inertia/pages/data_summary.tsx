@@ -4,6 +4,10 @@ import Layout from '../components/Layout'
 import { ColumnDef } from '@tanstack/react-table'
 import { DataTable } from '@/components/data-table'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import * as XLSX from 'xlsx'
+import toast from 'react-hot-toast'
+import { Download } from 'lucide-react'
+import { Button } from '~/components/ui/button'
 
 interface SummaryItem {
   id: number
@@ -15,7 +19,7 @@ interface SummaryItem {
 
 interface DetailItem {
   id: number
-  partPcb: string
+  scanPcb: string
   partIc: string
   productionName: string
   dc: string
@@ -49,6 +53,37 @@ export default function DataSummary({ summaries }: Props) {
     setLoading(false)
   }
 
+  async function handleExport(item: SummaryItem) {
+    const params = new URLSearchParams({
+      partPcb: item.partPcb,
+      shift: item.shift,
+      date: item.scanDate,
+    })
+    const res = await fetch(`/data-summary/details?${params.toString()}`)
+    const details: DetailItem[] = await res.json()
+
+    if (details.length === 0) {
+      toast.error('No records to export')
+      return
+    }
+
+    const rows = details.map((d) => ({
+      'Scan PCB': d.scanPcb,
+      'Shift': item.shift,
+      'Part IC': d.partIc,
+      'Production Name': d.productionName,
+      'D/C': d.dc,
+      'Created At': d.createdAt,
+    }))
+
+    const worksheet = XLSX.utils.json_to_sheet(rows)
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Scan Records')
+
+    const fileName = `${item.partPcb}_Shift${item.shift}_${item.scanDate}.xlsx`
+    XLSX.writeFile(workbook, fileName)
+  }
+
   const columns: ColumnDef<SummaryItem>[] = [
     { accessorKey: 'partPcb', header: 'Part PCB' },
     { accessorKey: 'shift', header: 'Shift' },
@@ -58,9 +93,32 @@ export default function DataSummary({ summaries }: Props) {
       header: 'Total Scan',
       cell: ({ row }) => <div className="text-left font-semibold">{row.original.totalScan}</div>,
     },
+    {
+      id: 'export',
+      header: 'Export',
+      cell: ({ row }) => (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={(e) => {
+            e.stopPropagation() // prevent triggering the row's onRowClick (opening the Sheet)
+            handleExport(row.original)
+          }}
+        >
+          <Download className="h-4 w-4" />
+        </Button>
+      ),
+    },
   ]
 
   const detailColumns: ColumnDef<DetailItem>[] = [
+    {
+      accessorKey: 'scanPcb',
+      header: 'Scan PCB',
+      cell: ({ row }) => (
+        <div className="max-w-50 overflow-x-auto whitespace-nowrap">{row.original.scanPcb}</div>
+      ),
+    },
     { accessorKey: 'partIc', header: 'Part IC' },
     { accessorKey: 'productionName', header: 'Production Name' },
     { accessorKey: 'dc', header: 'D/C' },

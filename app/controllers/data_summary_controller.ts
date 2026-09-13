@@ -24,11 +24,13 @@ export default class DataSummaryController {
     const shift = request.input('shift')
     const date = request.input('date') // 'yyyy-MM-dd'
 
-    const startLocal = DateTime.fromFormat(date, 'yyyy-MM-dd', { zone: 'Asia/Phnom_Penh' }).startOf('day')
+    const startLocal = DateTime.fromFormat(date, 'yyyy-MM-dd', { zone: 'Asia/Phnom_Penh' }).startOf(
+      'day'
+    )
     const endLocal = startLocal.endOf('day')
 
     const records = await ScanRecord.query()
-      .where('partPcb', partPcb)
+      .whereRaw('SUBSTRING_INDEX(scan_pcb, ",", 1) = ?', [partPcb])
       .where('shift', shift)
       .whereBetween('createdAt', [startLocal.toUTC().toSQL()!, endLocal.toUTC().toSQL()!])
       .orderBy('id', 'desc')
@@ -36,7 +38,7 @@ export default class DataSummaryController {
     return response.json(
       records.map((r) => ({
         id: r.id,
-        partPcb: r.partPcb,
+        scanPcb: r.scanPcb,
         partIc: r.partIc,
         productionName: r.productionName,
         dc: r.dc,

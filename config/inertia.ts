@@ -11,7 +11,12 @@ const inertiaConfig = defineConfig({
    * Data that should be shared with all rendered pages
    */
   sharedData: {
-    // user: (ctx) => ctx.inertia.always(() => ctx.auth.user),
+    user: (ctx) =>
+      ctx.auth.user
+        ? { id: ctx.auth.user.id, fullName: ctx.auth.user.fullName, role: ctx.auth.user.role }
+        : null,
+    error: (ctx) => ctx.session.flashMessages.get('error'),
+    success: (ctx) => ctx.session.flashMessages.get('success'),
   },
 
   /**
@@ -19,8 +24,8 @@ const inertiaConfig = defineConfig({
    */
   ssr: {
     enabled: true,
-    entrypoint: 'inertia/app/ssr.tsx'
-  }
+    entrypoint: 'inertia/app/ssr.tsx',
+  },
 })
 
 export default inertiaConfig

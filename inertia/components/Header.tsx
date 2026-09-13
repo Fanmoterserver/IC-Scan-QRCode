@@ -1,4 +1,4 @@
-import { Link, usePage } from '@inertiajs/react'
+import { Link, usePage, router } from '@inertiajs/react'
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -6,15 +6,26 @@ import {
   NavigationMenuList,
 } from '@/components/ui/navigation-menu'
 import { cn } from '@/lib/utils'
+import { Button } from './ui/button'
 
-const navItems = [
-  { label: 'Data Summary', href: '/' },
-  { label: 'Scan QR Code', href: '/scan-qrcode' },
-  { label: 'Master Data', href: '/master-data' },
-]
+interface PageProps {
+  [key: string]: unknown
+  user: { id: number; fullName: string; role: 'admin' | 'user' } | null
+}
 
 export default function Header() {
-  const { url } = usePage()
+  const { url, props } = usePage<PageProps>()
+  const user = props.user
+
+  const navItems = [
+    { label: 'Data Summary', href: '/data-summary' },
+    { label: 'Scan QR Code', href: '/scan-qrcode' },
+    ...(user?.role === 'admin' ? [{ label: 'Master Data', href: '/master-data' }] : []),
+  ]
+
+  function handleLogout() {
+    router.post('/logout')
+  }
 
   return (
     <header className="sticky top-0 z-10 border-b bg-white">
@@ -25,7 +36,9 @@ export default function Header() {
           <NavigationMenuList className="justify-start gap-1">
             {navItems.map((item) => {
               const isActive =
-                item.href === '/' ? url === '/' : url.startsWith(item.href)
+                item.href === '/data-summary'
+                  ? url === '/' || url.startsWith('/data-summary')
+                  : url.startsWith(item.href)
               return (
                 <NavigationMenuItem key={item.href}>
                   <NavigationMenuLink
@@ -44,6 +57,16 @@ export default function Header() {
             })}
           </NavigationMenuList>
         </NavigationMenu>
+        <div className="ml-auto flex items-center gap-4">
+          {user && (
+            <span className="text-sm text-gray-500">
+              {user.fullName} ({user.role})
+            </span>
+          )}
+          <Button variant="outline" size="sm" onClick={handleLogout}>
+            Logout
+          </Button>
+        </div>
       </div>
     </header>
   )

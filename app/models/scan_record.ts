@@ -9,7 +9,7 @@ export default class ScanRecord extends BaseModel {
   declare id: number
 
   @column()
-  declare partPcb: string
+  declare scanPcb: string
 
   @column()
   declare partIc: string
