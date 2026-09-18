@@ -105,9 +105,8 @@ export default function MasterData({ items }: Props) {
   return (
     <Layout>
       <div className="flex h-full justify-center p-6">
-        <div className="flex h-full flex-col w-full max-w-3xl">
+        <div className="flex h-full flex-col w-full max-w-3xl rounded-lg border border-black/10 bg-white p-6 shadow-sm">
           <h1 className="mb-8 text-2xl font-bold text-center">Master Data</h1>
-
           <form onSubmit={handleSubmit} className="mb-6 flex items-end gap-4">
             <div className="flex-1">
               <Label htmlFor="partPcb" className="mb-2 block">

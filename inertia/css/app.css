@@ -59,7 +59,7 @@ html, body, #app {
 }
 
 :root {
-  --background: oklch(1 0 0);
+  --background: oklch(0.97 0.002 247);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
@@ -91,11 +91,17 @@ html, body, #app {
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+
+/* Add style */
+  --accent: #2563eb;
+  --accent-foreground: #ffffff;
+  --ok: #16a34a;
+  --danger: #dc2626;
 }
 
 .dark {
   --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
+  --foreground: oklch(0.19 0.01 247);
   --card: oklch(0.205 0 0);
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
@@ -136,5 +142,9 @@ html, body, #app {
   }
   html {
     @apply font-sans;
+  }
+  .font-mono-data {
+    font-family: ui-monospace, "JetBrains Mono", "SFMono-Regular", Menlo, monospace;
+    letter-spacing: 0.01em;
   }
 }

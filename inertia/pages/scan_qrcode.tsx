@@ -230,7 +230,7 @@ export default function ScanQrCode({ masterData, records }: Props) {
   return (
     <Layout>
       <div className="flex h-full justify-center p-6">
-        <div className="flex h-full w-full max-w-4xl flex-col">
+        <div className="flex h-full w-full max-w-4xl flex-col rounded-lg border border-black/10 bg-white p-6 shadow-sm">
           <h1 className="mb-8 text-center text-2xl font-bold">Scan QR Code</h1>
           <div className="space-y-6">
             <div className="flex flex-wrap justify-around">

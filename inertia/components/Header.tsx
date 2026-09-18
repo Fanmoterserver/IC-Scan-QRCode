@@ -28,9 +28,9 @@ export default function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-10 border-b bg-white">
+    <header className="sticky top-0 z-10 border-b border-black/10 bg-[#101418]">
       <div className="flex items-center gap-6 px-6 py-3">
-        <span className="font-semibold text-lg">IC Scan QR Code</span>
+        <span className="font-semibold text-lg tracking-tight text-white">IC Scan QR Code</span>
 
         <NavigationMenu className="max-w-none flex-none">
           <NavigationMenuList className="justify-start gap-1">
@@ -44,10 +44,10 @@ export default function Header() {
                   <NavigationMenuLink
                     render={<Link href={item.href} />}
                     className={cn(
-                      'rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                      'relative rounded-none border-b-2 px-3 py-2 text-sm font-medium transition-colors',
                       isActive
-                        ? 'bg-gray-100 text-gray-900'
-                        : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                        ? 'border-blue-500 bg-transparent text-white hover:bg-white/10 hover:text-white'
+                        : 'border-transparent text-white/60 hover:border-white/30 hover:bg-white/5 hover:text-white'
                     )}
                   >
                     {item.label}
@@ -59,11 +59,16 @@ export default function Header() {
         </NavigationMenu>
         <div className="ml-auto flex items-center gap-4">
           {user && (
-            <span className="text-sm text-gray-500">
-              {user.fullName} ({user.role})
+            <span className="font-mono-data text-base text-white">
+              {user.fullName.toUpperCase()}
             </span>
           )}
-          <Button variant="outline" size="sm" onClick={handleLogout}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleLogout}
+            className="border-white/20 bg-transparent text-white hover:bg-white/10 hover:text-white"
+          >
             Logout
           </Button>
         </div>

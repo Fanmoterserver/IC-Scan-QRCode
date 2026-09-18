@@ -127,8 +127,8 @@ export default function DataSummary({ summaries }: Props) {
 
   return (
     <Layout>
-      <div className="flex justify-center p-6">
-        <div className="w-full max-w-3xl">
+      <div className="flex h-full justify-center p-6">
+        <div className="flex h-full flex-col w-full max-w-3xl rounded-lg border border-black/10 bg-white p-6 shadow-sm">
           <h1 className="mb-8 text-center text-2xl font-bold">Data Summary</h1>
 
           <DataTable
