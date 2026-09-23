@@ -14,7 +14,7 @@ module.exports = {
         PORT: 3339,
         HOST: '0.0.0.0',
         LOG_LEVEL: 'info',
-        APP_KEY: 'x8IrgtZ7_-T7Pp205TgZcKWwaqUa2e65',
+        APP_KEY: '',
         NODE_ENV: 'production',
         SESSION_DRIVER: 'cookie',
 
@@ -22,7 +22,7 @@ module.exports = {
         DB_HOST: '127.0.0.1',
         DB_PORT: 3306,
         DB_USER: 'root',
-        DB_PASSWORD: 'admin123',
+        DB_PASSWORD: '',
         DB_DATABASE: 'ic_scan_qrcode',
       },
     },
