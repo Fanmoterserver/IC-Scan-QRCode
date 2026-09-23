@@ -12,13 +12,13 @@ export default defineConfig({
     adonisjs({ entrypoints: ['inertia/app/app.tsx'], reload: ['resources/views/**/*.edge'] }),
     tailwindcss(),
   ],
-  
+
   server: {
-    host: '0.0.0.0',   // listen on all network interfaces, not just localhost
-    port: 5179,          // or any free port you like
-    strictPort: true,    // fail loudly instead of silently picking another port
+    host: '0.0.0.0', // listen on all network interfaces, not just localhost
+    port: 5179, // or any free port you like
+    strictPort: true, // fail loudly instead of silently picking another port
     hmr: {
-      host: '192.168.1.50',
+      host: 'localhost',
       port: 5179,
     },
   },
@@ -29,5 +29,4 @@ export default defineConfig({
       '@': `${getDirname(import.meta.url)}/inertia`,
     },
   },
-
 })

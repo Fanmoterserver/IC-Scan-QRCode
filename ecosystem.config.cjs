@@ -22,7 +22,7 @@ module.exports = {
         DB_HOST: '127.0.0.1',
         DB_PORT: 3306,
         DB_USER: 'root',
-        DB_PASSWORD: 'admin123',
+        DB_PASSWORD: 'admin',
         DB_DATABASE: 'ic_scan_qrcode',
       },
     },
