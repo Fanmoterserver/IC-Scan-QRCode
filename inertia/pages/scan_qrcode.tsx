@@ -27,7 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-
+import { ScanInput } from '../components/scan-input'
 import { Check, ChevronsUpDown } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import {
@@ -106,6 +106,9 @@ export default function ScanQrCode({ masterData, records }: Props) {
     dcValid
 
   const scanInputRef = useRef<HTMLInputElement>(null)
+  const partIcRef = useRef<HTMLInputElement>(null)
+  const productionNameRef = useRef<HTMLInputElement>(null)
+  const dcRef = useRef<HTMLInputElement>(null)
 
   function handleScanKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === 'Enter') {
@@ -121,16 +124,16 @@ export default function ScanQrCode({ masterData, records }: Props) {
         scanInputRef.current.value = firstSegment
       }
 
-      if (selectedPartPcb === '') {
-        // Inline error will show automatically via `scannedWithoutSelection`
-        return
-      }
+      if (selectedPartPcb === '') return
 
       if (firstSegment && firstSegment !== selectedPartPcb) {
         showWarning(
           `Scanned PCB "${firstSegment}" does not match the selected Part PCB "${selectedPartPcb}".`
         )
       }
+
+      // Valid -> go to Part IC
+      if (firstSegment) partIcRef.current?.focus()
     }
   }
 
@@ -142,6 +145,17 @@ export default function ScanQrCode({ masterData, records }: Props) {
       if (value && correctPartIc !== null && value !== correctPartIc) {
         showWarning(`Incorrect Part IC.\nScanned: "${value}"\nExpected: "${correctPartIc}"`)
       }
+
+      // Valid -> go to Production Name
+      if (value && correctPartIc !== null) productionNameRef.current?.focus()
+    }
+  }
+
+  function handleProductionNameKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      // Valid (exactly 14 chars) -> go to D/C
+      if (productionNameValid) dcRef.current?.focus()
     }
   }
 
@@ -157,6 +171,7 @@ export default function ScanQrCode({ masterData, records }: Props) {
             scanInputRef.current.value = ''
           }
           hasSubmittedRef.current = false
+          scanInputRef.current?.focus() // <-- ready for the next scan
         },
         onError: (errors) => {
           toast.error((Object.values(errors)[0] as string) || 'Failed to save scan')
@@ -302,10 +317,9 @@ export default function ScanQrCode({ masterData, records }: Props) {
             <div className="flex flex-wrap justify-between mt-6">
               <div className="w-48">
                 <Label className="mb-2 block">Scan PCB</Label>
-                <Input
+                <ScanInput
                   ref={scanInputRef}
                   autoFocus
-                  // value={scannedPcbCode}
                   defaultValue=""
                   onKeyDown={handleScanKeyDown}
                   placeholder="Scan here..."
@@ -322,7 +336,8 @@ export default function ScanQrCode({ masterData, records }: Props) {
 
               <div className="w-40">
                 <Label className="mb-2 block">Part IC</Label>
-                <Input
+                <ScanInput
+                  ref={partIcRef}
                   value={data.partIc}
                   onChange={(e) => setData('partIc', e.target.value)}
                   onKeyDown={handlePartIcKeyDown}
@@ -335,9 +350,11 @@ export default function ScanQrCode({ masterData, records }: Props) {
 
               <div className="w-48">
                 <Label className="mb-2 block">Production Name</Label>
-                <Input
+                <ScanInput
+                  ref={productionNameRef}
                   value={data.productionName}
                   onChange={(e) => setData('productionName', e.target.value)}
+                  onKeyDown={handleProductionNameKeyDown}
                   placeholder="14 characters"
                 />
                 {data.productionName !== '' && !productionNameValid && (
@@ -349,7 +366,8 @@ export default function ScanQrCode({ masterData, records }: Props) {
 
               <div className="w-32">
                 <Label className="mb-2 block">D/C</Label>
-                <Input
+                <ScanInput
+                  ref={dcRef}
                   value={data.dc}
                   onChange={(e) => setData('dc', e.target.value)}
                   placeholder="4 characters"
