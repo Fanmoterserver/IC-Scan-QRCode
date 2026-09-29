@@ -128,7 +128,7 @@ export default function ScanQrCode({ masterData, records }: Props) {
 
       if (firstSegment && firstSegment !== selectedPartPcb) {
         showWarning(
-          `Scanned PCB "${firstSegment}" does not match the selected Part PCB "${selectedPartPcb}".`
+          `Scanned PCB "${firstSegment}" មិនត្រឹមត្រូវនឹង Part PCB ដែលបានជ្រើសរើស "${selectedPartPcb}"\nសូមពិនិត្យមើលនិងបញ្ជាក់ជាមួយ QC ម្តងទៀត។`
         )
       }
 
@@ -143,7 +143,9 @@ export default function ScanQrCode({ masterData, records }: Props) {
       const value = data.partIc.trim()
 
       if (value && correctPartIc !== null && value !== correctPartIc) {
-        showWarning(`Incorrect Part IC.\nScanned: "${value}"\nExpected: "${correctPartIc}"`)
+        showWarning(
+          `Part IC មិនត្រឹមត្រូវ\nScanned: "${value}"\nExpected: "${correctPartIc}"\nសូមពិនិត្យមើលនិងបញ្ជាក់ជាមួយ QC ម្តងទៀត។`
+        )
       }
 
       // Valid -> go to Production Name
