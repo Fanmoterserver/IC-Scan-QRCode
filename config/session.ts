@@ -3,7 +3,7 @@ import { defineConfig, stores } from '@adonisjs/session'
 
 const sessionConfig = defineConfig({
   enabled: true,
-  cookieName: 'adonis-session',
+  cookieName: env.get('SESSION_COOKIE_NAME', 'adonis-session'),
 
   /**
    * When set to true, the session id cookie will be deleted
@@ -15,7 +15,7 @@ const sessionConfig = defineConfig({
    * Define how long to keep the session data alive without
    * any activity.
    */
-  age: '2h',
+  age: '360d',
 
   /**
    * Configuration for session cookie and the
